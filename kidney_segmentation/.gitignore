@@ -1,0 +1,57 @@
+# ── Local only ───────────────────────────────────────────────────────────────
+# NOTE: '#' starts a comment only at the START of a line; a trailing "# note" becomes part
+# of the pattern. A slash-free pattern ('*.pt') matches at any depth; one containing a
+# slash is anchored to this directory.
+archive/
+CLAUDE.md
+.claude/
+
+# ── Downloaded by scripts/download_data.py ───────────────────────────────────
+weights/
+data/slides/
+
+# ── Generated ────────────────────────────────────────────────────────────────
+# Patch cache written by scripts/extract_patches.py (several GB).
+data/patches_*/
+
+# Training runs: checkpoints are large; keep only each run's history.json.
+runs/**
+!runs/*/
+!runs/*/history.json
+
+# Inference and benchmark output. Only the tables of the benchmarks reported in the
+# paper are tracked. 'results/**' rather than 'results/' because git cannot re-include a
+# file whose parent directory is excluded.
+results/**
+!results/benchmark_*/
+!results/benchmark_*/benchmark.json
+!results/benchmark_*/slides.csv
+!results/benchmark_*/tiles.csv
+!results/benchmark_*/objects.csv
+!results/benchmark_*/failure_report.md
+
+# ── Formats that are always artifacts, at any depth ──────────────────────────
+*.pt
+*.npy
+*.npz
+*.bin
+*.zarr/
+*.tif
+*.tiff
+*.ndpi
+*.svs
+*.png
+*.log
+*.part
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# ── Editor / OS ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,906 @@
+{
+  "provenance": {
+    "git": {
+      "commit": "b7635668c997b8b70612e7c7c6ec82794e87966b",
+      "tracked_files_modified": true
+    },
+    "argv": [
+      "--out-dir",
+      "results/reproduced/benchmark_mouse_test_ctrl1a2",
+      "--manifest",
+      "data/manifest_test.csv",
+      "--split",
+      "test",
+      "--pred",
+      "Ctrl_1A2_test=results/reproduced/mouse_Ctrl_1A2"
+    ],
+    "manifest": "data/manifest_test.csv",
+    "split": "test",
+    "tile_px": 1024,
+    "n_boot": 2000,
+    "seed": 1337,
+    "alpha": 0.05,
+    "slides": {
+      "Ctrl_1A2_test": {
+        "prediction_dir": "results/reproduced/mouse_Ctrl_1A2",
+        "checkpoint": "weights/mouse_weights.pt",
+        "working_mpp": 0.44068,
+        "rectangles": [
+          [
+            8060,
+            10785,
+            12134,
+            13879
+          ]
+        ],
+        "decode": {
+          "fg_threshold": 0.5,
+          "interior_threshold": 0.4,
+          "min_seed_area": 24,
+          "watershed_line": false,
+          "min_area": {
+            "default": 950,
+            "tubule_proximal": 1950,
+            "tubule_distal": 1000,
+            "tubule_collecting": 950,
+            "glomerulus": 2300
+          },
+          "semantic_split": {
+            "enabled": false,
+            "min_class_prob": 0.5,
+            "open_px": 2,
+            "min_component_area": 600,
+            "min_minor_frac": 0.15,
+            "max_parts": 4,
+            "elevation": "boundary_plus_ambiguity",
+            "ambiguity_weight": 1.0,
+            "pairs": [
+              [
+                "tubule_proximal",
+                "tubule_distal"
+              ],
+              [
+                "tubule_proximal",
+                "tubule_collecting"
+              ],
+              [
+                "tubule_distal",
+                "tubule_collecting"
+              ]
+            ]
+          },
+          "center_threshold": 0.35,
+          "center_min_distance": 20,
+          "center_nms_iou": 0.6,
+          "merge_fragments": false,
+          "merge_max_boundary_prob": 0.3,
+          "merge_max_minor_axis_growth": 1.15,
+          "merge_max_area_ratio": 4.0,
+          "fill_holes": false,
+          "max_flood_distance_px": 8,
+          "touching_seed_veto": 0.05
+        },
+        "tta": "d4"
+      }
+    }
+  },
+  "conventions": {
+    "matching": "class-agnostic; a pair is a true positive iff IoU > 0.5 (strict). Unique above 0.5, so identical to the Hungarian matching of panoptic_quality.",
+    "iou": "|G n P| / |G u P| per matched pair",
+    "dice": "2|G n P| / (|G| + |P|) per matched pair",
+    "dice_per_gt / iou_per_gt": "mean over ALL annotated objects, unmatched objects count 0",
+    "dice_matched / iou_matched": "mean over true positives only; conditioned on IoU > 0.5, so bounded below by 0.667 / 0.5",
+    "surface": "outer contour: holes filled, then mask pixels with a 4-neighbour outside; pixels on the evaluation-rectangle edge are excluded. Overlap metrics are not hole-filled",
+    "hd95": "max of the two directed 95th-percentile surface distances (MONAI / DeepMind surface-distance convention, not MedPy's pooled percentile); linear interpolation; true positives only, never imputed for misses",
+    "assd": "sum of both directed surface distances over the total number of surface pixels",
+    "leak_frac": "share of a matched prediction lying more than 5 px outside its annotation",
+    "split / merge": "ground-truth object covered >= 20 % by two or more predictions / by a prediction that also covers >= 20 % of another object",
+    "fg_dice_px / fg_iou_px": "foreground pixels inside the valid mask, pooled by summing counts over tiles",
+    "ignore": "predictions with < 50 % of their area in the valid mask are dropped; predictions on trusted background are false positives (ADR 0003)",
+    "confidence_interval": "percentile cluster bootstrap over tiles, stratified by slide; every replicate recomputes the pooled statistic from counts"
+  },
+  "caveats": [
+    "Confidence intervals describe spatial sampling variability WITHIN the scored slides. They do not describe generalisation across animals, sections, stain batches or scanners: with fewer than 5 slides the between-slide variance is not estimable and no between-slide standard error is reported."
+  ],
+  "classes": [
+    "background",
+    "tubule_proximal",
+    "tubule_distal",
+    "tubule_collecting",
+    "glomerulus"
+  ],
+  "counts": {
+    "tp": 132,
+    "fp": 4,
+    "fn": 18,
+    "n_split": 1,
+    "n_merged": 24,
+    "n_gt": 150,
+    "n_pred": 136,
+    "n_tiles": 8
+  },
+  "pooled": {
+    "PQ": {
+      "estimate": 0.805552839673695,
+      "ci_low": 0.7649967979531387,
+      "ci_high": 0.8539012330134553,
+      "se": 0.02212947260082615,
+      "n_boot": 2000
+    },
+    "SQ": {
+      "estimate": 0.8726822429798361,
+      "ci_low": 0.8556399107701608,
+      "ci_high": 0.9005629884233414,
+      "se": 0.011700836183844121,
+      "n_boot": 2000
+    },
+    "DQ": {
+      "estimate": 0.9230769230769231,
+      "ci_low": 0.8831079265562024,
+      "ci_high": 0.9558823529411765,
+      "se": 0.018559795490935237,
+      "n_boot": 2000
+    },
+    "recall": {
+      "estimate": 0.88,
+      "ci_low": 0.8208920022528865,
+      "ci_high": 0.9285714285714286,
+      "se": 0.02800743005082316,
+      "n_boot": 2000
+    },
+    "precision": {
+      "estimate": 0.9705882352941176,
+      "ci_low": 0.9459336609336609,
+      "ci_high": 0.988768700726302,
+      "se": 0.010884383523668217,
+      "n_boot": 2000
+    },
+    "dice_per_gt": {
+      "estimate": 0.8173227162205973,
+      "ci_low": 0.7583694086458027,
+      "ci_high": 0.8717290106756994,
+      "se": 0.029057930706795465,
+      "n_boot": 2000
+    },
+    "iou_per_gt": {
+      "estimate": 0.7679603738222558,
+      "ci_low": 0.7114685263524019,
+      "ci_high": 0.8269018325522798,
+      "se": 0.029394442064747447,
+      "n_boot": 2000
+    },
+    "dice_matched": {
+      "estimate": 0.9287758138870423,
+      "ci_low": 0.9183697961539027,
+      "ci_high": 0.946174743633911,
+      "se": 0.007239968633697471,
+      "n_boot": 2000
+    },
+    "iou_matched": {
+      "estimate": 0.8726822429798361,
+      "ci_low": 0.8556399107701608,
+      "ci_high": 0.9005629884233414,
+      "se": 0.011700836183844121,
+      "n_boot": 2000
+    },
+    "hd95_um_mean": {
+      "estimate": 7.240866208123836,
+      "ci_low": 4.316312365250497,
+      "ci_high": 10.284200688125726,
+      "se": 1.465860363368278,
+      "n_boot": 2000
+    },
+    "hd95_um_median": {
+      "estimate": 2.240490531362558,
+      "ci_low": 2.2034000000000002,
+      "ci_high": 2.492862530666302,
+      "se": 0.07674685309926402,
+      "n_boot": 2000
+    },
+    "hd95_px_mean": {
+      "estimate": 16.431120559416893,
+      "ci_low": 9.794663622697872,
+      "ci_high": 23.337116928668703,
+      "se": 3.3263600875199195,
+      "n_boot": 2000
+    },
+    "assd_um_mean": {
+      "estimate": 1.5491354468704213,
+      "ci_low": 1.171463888880067,
+      "ci_high": 2.0163808760635966,
+      "se": 0.2119017428301402,
+      "n_boot": 2000
+    },
+    "split_rate": {
+      "estimate": 0.006666666666666667,
+      "ci_low": 0.0,
+      "ci_high": 0.015625,
+      "se": 0.00499889993026346,
+      "n_boot": 2000
+    },
+    "merge_rate": {
+      "estimate": 0.16,
+      "ci_low": 0.08333333333333333,
+      "ci_high": 0.2631578947368421,
+      "se": 0.04732527579725248,
+      "n_boot": 2000
+    },
+    "fg_dice_px": {
+      "estimate": 0.9562325952582057,
+      "ci_low": 0.9489907562101518,
+      "ci_high": 0.9628217541589088,
+      "se": 0.0036724656637209135,
+      "n_boot": 2000
+    },
+    "fg_iou_px": {
+      "estimate": 0.9161357127211278,
+      "ci_low": 0.9029328350987412,
+      "ci_high": 0.92830885947706,
+      "se": 0.0067367758947249785,
+      "n_boot": 2000
+    },
+    "dice_px[tubule_proximal]": {
+      "estimate": 0.94924932990369,
+      "ci_low": 0.9214141649596037,
+      "ci_high": 0.9655346439939011,
+      "se": 0.011974593785085983,
+      "n_boot": 2000
+    },
+    "dice_px[tubule_distal]": {
+      "estimate": 0.8109423597366402,
+      "ci_low": 0.7729024044313905,
+      "ci_high": 0.9126022510609508,
+      "se": 0.1032059504766316,
+      "n_boot": 1997
+    },
+    "dice_px[tubule_collecting]": {
+      "estimate": 0.9476237393057719,
+      "ci_low": 0.0,
+      "ci_high": 0.9486623455976614,
+      "se": 0.2970247169545923,
+      "n_boot": 1990
+    },
+    "dice_px[glomerulus]": {
+      "estimate": 0.9415959137758684,
+      "ci_low": 0.9309950744499488,
+      "ci_high": 0.9660469304518248,
+      "se": 0.008172275797315552,
+      "n_boot": 1999
+    }
+  },
+  "per_slide": {
+    "Ctrl_1A2_test": {
+      "counts": {
+        "tp": 132,
+        "fp": 4,
+        "fn": 18,
+        "n_split": 1,
+        "n_merged": 24,
+        "n_gt": 150,
+        "n_pred": 136,
+        "n_tiles": 8
+      },
+      "metrics": {
+        "PQ": {
+          "estimate": 0.805552839673695,
+          "ci_low": 0.7649967979531387,
+          "ci_high": 0.8539012330134553,
+          "se": 0.02212947260082615,
+          "n_boot": 2000
+        },
+        "SQ": {
+          "estimate": 0.8726822429798361,
+          "ci_low": 0.8556399107701608,
+          "ci_high": 0.9005629884233414,
+          "se": 0.011700836183844121,
+          "n_boot": 2000
+        },
+        "DQ": {
+          "estimate": 0.9230769230769231,
+          "ci_low": 0.8831079265562024,
+          "ci_high": 0.9558823529411765,
+          "se": 0.018559795490935237,
+          "n_boot": 2000
+        },
+        "recall": {
+          "estimate": 0.88,
+          "ci_low": 0.8208920022528865,
+          "ci_high": 0.9285714285714286,
+          "se": 0.02800743005082316,
+          "n_boot": 2000
+        },
+        "precision": {
+          "estimate": 0.9705882352941176,
+          "ci_low": 0.9459336609336609,
+          "ci_high": 0.988768700726302,
+          "se": 0.010884383523668217,
+          "n_boot": 2000
+        },
+        "dice_per_gt": {
+          "estimate": 0.8173227162205973,
+          "ci_low": 0.7583694086458027,
+          "ci_high": 0.8717290106756994,
+          "se": 0.029057930706795465,
+          "n_boot": 2000
+        },
+        "iou_per_gt": {
+          "estimate": 0.7679603738222558,
+          "ci_low": 0.7114685263524019,
+          "ci_high": 0.8269018325522798,
+          "se": 0.029394442064747447,
+          "n_boot": 2000
+        },
+        "dice_matched": {
+          "estimate": 0.9287758138870423,
+          "ci_low": 0.9183697961539027,
+          "ci_high": 0.946174743633911,
+          "se": 0.007239968633697471,
+          "n_boot": 2000
+        },
+        "iou_matched": {
+          "estimate": 0.8726822429798361,
+          "ci_low": 0.8556399107701608,
+          "ci_high": 0.9005629884233414,
+          "se": 0.011700836183844121,
+          "n_boot": 2000
+        },
+        "hd95_um_mean": {
+          "estimate": 7.240866208123836,
+          "ci_low": 4.316312365250497,
+          "ci_high": 10.284200688125726,
+          "se": 1.465860363368278,
+          "n_boot": 2000
+        },
+        "hd95_um_median": {
+          "estimate": 2.240490531362558,
+          "ci_low": 2.2034000000000002,
+          "ci_high": 2.492862530666302,
+          "se": 0.07674685309926402,
+          "n_boot": 2000
+        },
+        "hd95_px_mean": {
+          "estimate": 16.431120559416893,
+          "ci_low": 9.794663622697872,
+          "ci_high": 23.337116928668703,
+          "se": 3.3263600875199195,
+          "n_boot": 2000
+        },
+        "assd_um_mean": {
+          "estimate": 1.5491354468704213,
+          "ci_low": 1.171463888880067,
+          "ci_high": 2.0163808760635966,
+          "se": 0.2119017428301402,
+          "n_boot": 2000
+        },
+        "split_rate": {
+          "estimate": 0.006666666666666667,
+          "ci_low": 0.0,
+          "ci_high": 0.015625,
+          "se": 0.00499889993026346,
+          "n_boot": 2000
+        },
+        "merge_rate": {
+          "estimate": 0.16,
+          "ci_low": 0.08333333333333333,
+          "ci_high": 0.2631578947368421,
+          "se": 0.04732527579725248,
+          "n_boot": 2000
+        },
+        "fg_dice_px": {
+          "estimate": 0.9562325952582057,
+          "ci_low": 0.9489907562101518,
+          "ci_high": 0.9628217541589088,
+          "se": 0.0036724656637209135,
+          "n_boot": 2000
+        },
+        "fg_iou_px": {
+          "estimate": 0.9161357127211278,
+          "ci_low": 0.9029328350987412,
+          "ci_high": 0.92830885947706,
+          "se": 0.0067367758947249785,
+          "n_boot": 2000
+        },
+        "dice_px[tubule_proximal]": {
+          "estimate": 0.94924932990369,
+          "ci_low": 0.9214141649596037,
+          "ci_high": 0.9655346439939011,
+          "se": 0.011974593785085983,
+          "n_boot": 2000
+        },
+        "dice_px[tubule_distal]": {
+          "estimate": 0.8109423597366402,
+          "ci_low": 0.7729024044313905,
+          "ci_high": 0.9126022510609508,
+          "se": 0.1032059504766316,
+          "n_boot": 1997
+        },
+        "dice_px[tubule_collecting]": {
+          "estimate": 0.9476237393057719,
+          "ci_low": 0.0,
+          "ci_high": 0.9486623455976614,
+          "se": 0.2970247169545923,
+          "n_boot": 1990
+        },
+        "dice_px[glomerulus]": {
+          "estimate": 0.9415959137758684,
+          "ci_low": 0.9309950744499488,
+          "ci_high": 0.9660469304518248,
+          "se": 0.008172275797315552,
+          "n_boot": 1999
+        }
+      }
+    }
+  },
+  "between_slide": {
+    "PQ": {
+      "n": 1,
+      "mean": 0.805552839673695,
+      "min": 0.805552839673695,
+      "max": 0.805552839673695,
+      "se": null,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "dice_per_gt": {
+      "n": 1,
+      "mean": 0.8173227162205973,
+      "min": 0.8173227162205973,
+      "max": 0.8173227162205973,
+      "se": null,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "hd95_um_mean": {
+      "n": 1,
+      "mean": 7.240866208123836,
+      "min": 7.240866208123836,
+      "max": 7.240866208123836,
+      "se": null,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "note": "1 slide(s) scored: between-slide standard error is not estimable; per-slide point estimates are shown instead."
+  },
+  "by_class": {
+    "tubule_proximal": {
+      "n_gt": 70,
+      "metrics": {
+        "recall": {
+          "estimate": 0.8857142857142857,
+          "ci_low": 0.8,
+          "ci_high": 1.0,
+          "se": 0.06111195680098836,
+          "n_boot": 2000
+        },
+        "dice_per_gt": {
+          "estimate": 0.8325947595395224,
+          "ci_low": 0.7403743486643131,
+          "ci_high": 0.9543711283526203,
+          "se": 0.06568177087535568,
+          "n_boot": 2000
+        },
+        "iou_per_gt": {
+          "estimate": 0.7912522102823802,
+          "ci_low": 0.6970232082967389,
+          "ci_high": 0.9136342971088012,
+          "se": 0.06684179097347485,
+          "n_boot": 2000
+        },
+        "dice_matched": {
+          "estimate": 0.9400263414155898,
+          "ci_low": 0.9249493489308003,
+          "ci_high": 0.9545680766341325,
+          "se": 0.009097326581164801,
+          "n_boot": 2000
+        },
+        "hd95_um_mean": {
+          "estimate": 7.824648060711855,
+          "ci_low": 3.2558818733235895,
+          "ci_high": 11.591750949794804,
+          "se": 2.418995093334992,
+          "n_boot": 2000
+        },
+        "hd95_um_median": {
+          "estimate": 1.8873453435633867,
+          "ci_low": 1.8169701870971908,
+          "ci_high": 2.2034000000000002,
+          "se": 0.14928165659385312,
+          "n_boot": 2000
+        },
+        "split_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 2000
+        },
+        "merge_rate": {
+          "estimate": 0.18571428571428572,
+          "ci_low": 0.0,
+          "ci_high": 0.31582577132486367,
+          "se": 0.09423082070406823,
+          "n_boot": 2000
+        }
+      }
+    },
+    "tubule_distal": {
+      "n_gt": 15,
+      "metrics": {
+        "recall": {
+          "estimate": 0.8,
+          "ci_low": 0.75,
+          "ci_high": 1.0,
+          "se": 0.06365823448047511,
+          "n_boot": 1969
+        },
+        "dice_per_gt": {
+          "estimate": 0.7245022979549415,
+          "ci_low": 0.7023651214219659,
+          "ci_high": 0.859433539878881,
+          "se": 0.041254217183585476,
+          "n_boot": 1969
+        },
+        "iou_per_gt": {
+          "estimate": 0.6663388774097173,
+          "ci_low": 0.6336448174566615,
+          "ci_high": 0.7539481223139294,
+          "se": 0.02814184298394903,
+          "n_boot": 1969
+        },
+        "dice_matched": {
+          "estimate": 0.9056278724436768,
+          "ci_low": 0.859433539878881,
+          "ci_high": 0.9394736304094216,
+          "se": 0.024127099206754633,
+          "n_boot": 1969
+        },
+        "hd95_um_mean": {
+          "estimate": 7.981924788044086,
+          "ci_low": 4.351093661558632,
+          "ci_high": 16.214375232090386,
+          "se": 3.096232819765958,
+          "n_boot": 1969
+        },
+        "hd95_um_median": {
+          "estimate": 3.3705174146611654,
+          "ci_low": 2.2034000000000002,
+          "ci_high": 16.214375232090386,
+          "se": 3.824624440829848,
+          "n_boot": 1969
+        },
+        "split_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 1969
+        },
+        "merge_rate": {
+          "estimate": 0.26666666666666666,
+          "ci_low": 0.0,
+          "ci_high": 0.4,
+          "se": 0.09230434745543,
+          "n_boot": 1969
+        }
+      }
+    },
+    "tubule_collecting": {
+      "n_gt": 53,
+      "metrics": {
+        "recall": {
+          "estimate": 0.8867924528301887,
+          "ci_low": 0.75,
+          "ci_high": 0.9111111111111111,
+          "se": 0.06694466118044856,
+          "n_boot": 1770
+        },
+        "dice_per_gt": {
+          "estimate": 0.8133046295624732,
+          "ci_low": 0.7046608393168352,
+          "ci_high": 0.8326190811616979,
+          "se": 0.053169027799966906,
+          "n_boot": 1770
+        },
+        "iou_per_gt": {
+          "estimate": 0.7553461873669362,
+          "ci_low": 0.6655753357046178,
+          "ci_high": 0.7713054498846817,
+          "se": 0.04393282760909701,
+          "n_boot": 1770
+        },
+        "dice_matched": {
+          "estimate": 0.9171307524853424,
+          "ci_low": 0.9138502110311316,
+          "ci_high": 0.9395477857557802,
+          "se": 0.010799388585518613,
+          "n_boot": 1770
+        },
+        "hd95_um_mean": {
+          "estimate": 6.5518054707627815,
+          "ci_low": 3.292782412538664,
+          "ci_high": 7.028735674405334,
+          "se": 1.5700318588249957,
+          "n_boot": 1770
+        },
+        "hd95_um_median": {
+          "estimate": 2.2470359192500684,
+          "ci_low": 1.968252523282977,
+          "ci_high": 2.3731344272080332,
+          "se": 0.1607388041734586,
+          "n_boot": 1770
+        },
+        "split_rate": {
+          "estimate": 0.018867924528301886,
+          "ci_low": 0.0,
+          "ci_high": 0.022222222222222223,
+          "se": 0.009233746369717044,
+          "n_boot": 1770
+        },
+        "merge_rate": {
+          "estimate": 0.1320754716981132,
+          "ci_low": 0.1111111111111111,
+          "ci_high": 0.25,
+          "se": 0.05771091481073152,
+          "n_boot": 1770
+        }
+      }
+    },
+    "glomerulus": {
+      "n_gt": 12,
+      "metrics": {
+        "recall": {
+          "estimate": 0.9166666666666666,
+          "ci_low": 0.8,
+          "ci_high": 1.0,
+          "se": 0.06953330027085662,
+          "n_boot": 1962
+        },
+        "dice_per_gt": {
+          "estimate": 0.8620078690989837,
+          "ci_low": 0.7532956444008857,
+          "ci_high": 0.9404822317882694,
+          "se": 0.06462435145237531,
+          "n_boot": 1962
+        },
+        "iou_per_gt": {
+          "estimate": 0.8148308551648643,
+          "ci_low": 0.7136322971440127,
+          "ci_high": 0.8887271899459336,
+          "se": 0.06001741037365751,
+          "n_boot": 1962
+        },
+        "dice_matched": {
+          "estimate": 0.9403722208352551,
+          "ci_low": 0.934722816453762,
+          "ci_high": 0.9416195555011071,
+          "se": 0.0016244789726091288,
+          "n_boot": 1962
+        },
+        "hd95_um_mean": {
+          "estimate": 6.086200465984702,
+          "ci_low": 2.9727106370982286,
+          "ci_high": 8.554564947335553,
+          "se": 1.9503122658212295,
+          "n_boot": 1962
+        },
+        "hd95_um_median": {
+          "estimate": 3.7299728934254888,
+          "ci_low": 2.673623946148703,
+          "ci_high": 7.546304956178297,
+          "se": 1.420290109093031,
+          "n_boot": 1962
+        },
+        "split_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 1962
+        },
+        "merge_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 1962
+        }
+      }
+    }
+  },
+  "by_source": {},
+  "edge_cases": {
+    "boundary_leakage": {
+      "n_matched": 132,
+      "leak_frac_mean": 0.04190703914254494,
+      "leak_frac_gt_0.05_rate": 0.1590909090909091,
+      "over_reach_asymmetry_px_mean": 10.003140703492063,
+      "over_reach_asymmetry_px_median": 0.5023605450841864,
+      "area_ratio_median": 1.0220307509768776,
+      "area_ratio_mean": 1.0802546140301759,
+      "pred_solidity_lt_0.85_rate": 0.1893939393939394,
+      "gt_solidity_lt_0.85_rate": 0.16,
+      "pred_px_on_trusted_background_frac": 0.05200384255746073
+    },
+    "small_and_disconnected": {
+      "scored_predictions": 136,
+      "scored_multi_component": 0,
+      "all_predictions_in_rectangles": {
+        "n_instances": 887,
+        "n_below_min_area": 0,
+        "n_multi_component": 0,
+        "mean_stray_area_frac": 0.0
+      },
+      "false_positives": {
+        "n": 4,
+        "on_object": 3,
+        "on_background": 1,
+        "area_px_quartiles": [
+          2902.75,
+          9178.0,
+          22295.0
+        ]
+      }
+    },
+    "by_gt_area_quartile": [
+      {
+        "quartile": 1,
+        "area_px": [
+          1581.0,
+          4284.0
+        ],
+        "n": 38,
+        "recall": 0.8421052631578947,
+        "dice_per_gt": 0.7749093717611953,
+        "hd95_um_mean": 3.764701693529906,
+        "merge_rate": 0.15789473684210525
+      },
+      {
+        "quartile": 2,
+        "area_px": [
+          4284.0,
+          7628.5
+        ],
+        "n": 37,
+        "recall": 0.8378378378378378,
+        "dice_per_gt": 0.7720920093300737,
+        "hd95_um_mean": 5.550640921269921,
+        "merge_rate": 0.1891891891891892
+      },
+      {
+        "quartile": 3,
+        "area_px": [
+          7628.5,
+          11862.0
+        ],
+        "n": 37,
+        "recall": 0.9459459459459459,
+        "dice_per_gt": 0.9004401484116384,
+        "hd95_um_mean": 3.2845019420257078,
+        "merge_rate": 0.05405405405405406
+      },
+      {
+        "quartile": 4,
+        "area_px": [
+          11862.0,
+          36737.0
+        ],
+        "n": 38,
+        "recall": 0.8947368421052632,
+        "dice_per_gt": 0.8228463544663374,
+        "hd95_um_mean": 16.126366139680066,
+        "merge_rate": 0.23684210526315788
+      }
+    ],
+    "border_sensitivity": {
+      "n_matched_touching_rectangle_edge": 0,
+      "hd95_um_mean_all": 7.240866208123837,
+      "hd95_um_mean_excluding_edge_objects": 7.240866208123837
+    },
+    "class_agreement_among_matched": {
+      "accuracy": 0.9924242424242424,
+      "confusion": [
+        {
+          "gt": "glomerulus",
+          "pred": "glomerulus",
+          "n": 11
+        },
+        {
+          "gt": "tubule_collecting",
+          "pred": "tubule_collecting",
+          "n": 47
+        },
+        {
+          "gt": "tubule_distal",
+          "pred": "tubule_distal",
+          "n": 11
+        },
+        {
+          "gt": "tubule_distal",
+          "pred": "tubule_proximal",
+          "n": 1
+        },
+        {
+          "gt": "tubule_proximal",
+          "pred": "tubule_proximal",
+          "n": 62
+        }
+      ]
+    },
+    "stain_observational": {
+      "n_tiles": 7,
+      "note": "Observational only: staining intensity is confounded with anatomy (medulla stains differently from cortex), so an association here is not evidence of stain sensitivity on its own. The controlled test is --stain-drift.",
+      "spearman[h_od,dice_per_gt]": {
+        "rho": -0.3214285714285715,
+        "p": 0.4820720382996776,
+        "n": 7
+      },
+      "spearman[h_od,hd95_um_mean]": {
+        "rho": 0.42857142857142866,
+        "p": 0.337368311085824,
+        "n": 7
+      },
+      "tertiles[h_od]": [
+        {
+          "tertile": 1,
+          "n_tiles": 2,
+          "od_mean": 0.00750223870675271,
+          "dice_per_gt": 0.7660041357381583,
+          "hd95_um_mean": 10.753056784243624,
+          "PQ": 0.7758422091801183
+        },
+        {
+          "tertile": 2,
+          "n_tiles": 2,
+          "od_mean": 0.008349244399289324,
+          "dice_per_gt": 0.8591265702887051,
+          "hd95_um_mean": 4.84589373881728,
+          "PQ": 0.8296902861314495
+        },
+        {
+          "tertile": 3,
+          "n_tiles": 3,
+          "od_mean": 0.01020151944167047,
+          "dice_per_gt": 0.8271230992757147,
+          "hd95_um_mean": 6.481278737217338,
+          "PQ": 0.8096143028259505
+        }
+      ],
+      "spearman[e_od,dice_per_gt]": {
+        "rho": 0.3571428571428572,
+        "p": 0.4316113520383278,
+        "n": 7
+      },
+      "spearman[e_od,hd95_um_mean]": {
+        "rho": -0.28571428571428575,
+        "p": 0.5345092286010406,
+        "n": 7
+      },
+      "tertiles[e_od]": [
+        {
+          "tertile": 1,
+          "n_tiles": 2,
+          "od_mean": 0.03870171713716962,
+          "dice_per_gt": 0.8133046295624732,
+          "hd95_um_mean": 6.5518054707627815,
+          "PQ": 0.784967606479365
+        },
+        {
+          "tertile": 2,
+          "n_tiles": 2,
+          "od_mean": 0.045676497440479,
+          "dice_per_gt": 0.8639198715373562,
+          "hd95_um_mean": 5.925864211842373,
+          "PQ": 0.8615347853530562
+        },
+        {
+          "tertile": 3,
+          "n_tiles": 3,
+          "od_mean": 0.04870808222495513,
+          "dice_per_gt": 0.7901312048032217,
+          "hd95_um_mean": 8.849837918834274,
+          "PQ": 0.7880145094465163
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,5 @@
+slide_id,image_path,geojson_path,stain,species,split,level,manual_mpp,roi
+Ctrl_1A2_test,slides/Ctrl_1A2.tif,annotations/Ctrl_1A2_test.geojson,H&E,mouse,test,0,0.44068,
+IR_2A2_test,slides/IR_2A2.tif,annotations/IR_2A2_test.geojson,H&E,mouse,test,0,0.44068,
+IR_2A2_test_casts,slides/IR_2A2.tif,annotations/IR_2A2_test_with_casts.geojson,H&E,mouse,test,0,0.44068,
+HUK1_MED_1_test,slides/HUK1_MED_1.tif,annotations/HUK1_MED_1_test.geojson,H&E,human,test,0,0.5,

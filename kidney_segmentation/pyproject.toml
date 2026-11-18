@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kidney-panoptic"
+version = "1.0.0"
+description = "Panoptic instance segmentation of tubules and glomeruli in H&E kidney whole-slide images."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.4",
+    "torchvision",
+    "numpy",
+    "scipy",
+    "PyYAML",
+    "opencv-python",
+    "scikit-image>=0.25",
+    "shapely>=2",
+    "rasterio",
+    "tifffile",
+    "imagecodecs",
+    "openslide-python",
+    "openslide-bin",
+    "huggingface_hub",
+    "matplotlib",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Optional:  pip install -e .
+# The scripts put src/ on sys.path themselves, so installing is not required.
+
+[tool.pytest.ini_options]
+markers = ["slow: heavyweight (loads the frozen 1.1B-param encoder)"]
+pythonpath = ["src"]

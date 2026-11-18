@@ -1,0 +1,9 @@
+slide_id,image_path,geojson_path,stain,species,split,level,manual_mpp,roi
+Nx_4wk_001,slides/Nx_4wk_001.ndpi,annotations/Nx_4wk_001_level1.geojson,H&E,mouse,train,,,
+Nx_24h_1,slides/Nx_24h_1.ndpi,annotations/Nx_24h_1_level1.geojson,H&E,mouse,train,,,
+Nx_24h_100,slides/Nx_24h_100.ndpi,annotations/Nx_24h_100_level1.geojson,H&E,mouse,train,,,
+Nx_24h_50,slides/Nx_24h_50.ndpi,annotations/Nx_24h_50_level1.geojson,H&E,mouse,train,,,
+Nx_4wk_100,slides/Nx_4wk_100.ndpi,annotations/Nx_4wk_100_level1.geojson,H&E,mouse,train,,,
+Ctrl_1A2,slides/Ctrl_1A2.tif,annotations/Ctrl_1A2_final.geojson,H&E,mouse,train,0,0.44068,"7661,0,12457,2048;5613,2048,9709,4096;11757,2048,12457,11574;7661,4096,11757,6144;5613,6144,9709,8192;7661,8192,11757,10240;5613,10240,9709,11574"
+Ctrl_1A2_val,slides/Ctrl_1A2.tif,annotations/Ctrl_1A2_final.geojson,H&E,mouse,val,0,0.44068,"5613,0,7661,2048;9709,2048,11757,4096;5613,4096,7661,6144;9709,6144,11757,8192;5613,8192,7661,10240;9709,10240,11757,11574"
+Nx_4wk_050,slides/Nx_4wk_050.ndpi,annotations/Nx_4wk_050_level1.geojson,H&E,mouse,val,,,

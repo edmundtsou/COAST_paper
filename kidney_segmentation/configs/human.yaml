@@ -1,0 +1,294 @@
+# Dataset binding for the HUMAN kidney cohort (HUK1).
+#
+# This is a SEPARATE cohort from the mouse Nx / 100_kidney data bound by mouse.yaml. It is
+# kept in its own config, manifest, patch directory and run directory so the two are never
+# mixed by accident. Everything human-side carries `human` in its name.
+#
+# ---------------------------------------------------------------------------------------
+# What is different from the mouse cohort, and why each difference exists
+# ---------------------------------------------------------------------------------------
+#
+# 1. RESOLUTION. HUK1_COR_1.tif is a flat single-level 30464x17160 export whose only
+#    resolution tag is a 300-DPI print artefact -- the same trap as Ctrl_1A2.tif, and
+#    WSIReader refuses it on purpose. The manifest row therefore pins level=0 /
+#    manual_mpp=0.5 (20x, confirmed by the annotator). Independent sanity check from the
+#    annotations themselves: median glomerulus max-dimension is 395 px, which at 0.5 um/px
+#    is 198 um, and median tubule max-dimension is 142 px = 71 um. Both sit in the
+#    published range for human cortex. At 0.25 um/px the glomeruli would come out at 99 um,
+#    which is mouse-sized and wrong for human tissue.
+#
+#    The working mpp is thus 0.5 rather than the mouse cohort's 0.44068. That is a 13%
+#    difference and is left uncorrected: resampling to match the mouse plane would cost a
+#    real interpolation for no benefit, because nothing is shared between the two models.
+#    Every px-denominated value below (boundary width, seed area, min_area) is stated at
+#    0.5 um/px and must be re-derived if that number ever changes.
+#
+# 2. CLASS VOCABULARY. The human GeoJSON carries two labels only -- `Tubules` (197) and
+#    `Glomeruli` (23). There is no proximal/distal/collecting subdivision, so the canonical
+#    vocabulary is [background, tubule, glomerulus] rather than the mouse five. This is a
+#    reduction in the AUXILIARY task only: selection runs on class-agnostic PQ either way
+#    (ADR 0004), so a coarser semantic head does not change what is being optimised. It
+#    does remove the semantic_split mechanism's reason to exist here, and that mechanism is
+#    off by default anyway.
+#
+#    Consequence to keep in mind: a model with one tubule class cannot be compared to the
+#    mouse model's numbers on class-aware metrics, and its checkpoint cannot be --resume'd from
+#    a mouse checkpoint (train.py refuses a vocabulary change on purpose).
+#
+# 3. PATCH SIZE 640, not 512. Human glomeruli are physically about twice the pixel extent
+#    of mouse ones: p95 max-dimension is 457 px here. At the mouse patch size of 512 the
+#    containment window for such an object is 512-457 = 55 px, which is smaller than any
+#    sane stride, so nearly every glomerulus would be cut by the patch border in every
+#    patch it appears in -- and a truncated compact object cannot carry a correct centre
+#    peak. At 640 the window is 183 px against a 256 px stride, so most glomeruli land
+#    whole in at least one patch.
+#
+#    This is nearly free: the encoder is frozen and its input is resized to 518 px
+#    regardless of patch size, so only the trainable stem and decoder see the larger
+#    tensor. Tubules (142 px median) were never the constraint.
+#
+# 4. LABELS ARE PART MODEL-DERIVED. A preliminary human model, trained on the 220 hand-drawn
+#    objects only, was run over the whole slide and its output curated in QuPath, keeping
+#    1399 predictions. Merged with the 220 original hand-drawn ones, preferring the hand-drawn
+#    polygon on any pair overlapping at IoU >= 0.5, that gives the 1547 objects in
+#    `data/HUK1_COR_1.geojson`. Every feature carries a `source` property,
+#    `hand` or `curated`, so the split can always be recovered.
+#
+#    The curation is good: solidity < 0.85 runs at 2.8% on the kept set against 1.5% on the
+#    hand-drawn originals and 37.7% on the raw predictions they came from, so the tendril
+#    artefact was rejected rather than propagated.
+#
+#    ***But the kept objects were SELECTED, not corrected*** -- 99.5% of them match a preliminary-model
+#    prediction at median IoU 1.000. Two consequences follow and neither is visible in any
+#    metric this repo computes:
+#      * Any systematic bias in the preliminary model's boundary placement is now labelled as truth. Measured
+#        against the hand-drawn objects, it predicted 4.8% LARGE (area ratio 1.048), and
+#        that bias is inside 1246 of the 1443 tubules here.
+#      * The selection is not random: cases the preliminary model already got right were kept and cases it got
+#        wrong were dropped, so the training set under-represents exactly the failures a
+#        second round should be learning from. The three-way ignore mask keeps this from
+#        being actively harmful -- a dropped object's pixels become IGNORE, not background --
+#        but it does mean this model cannot be expected to fix the preliminary model's failure
+#        modes by itself.
+#    The 220 hand-drawn objects are kept in the mix as the only labels not derived from the
+#    model, which is why the merge prefers them on overlap.
+#
+# 5. HELD-OUT SPLIT. 1547 objects makes one affordable, so checkpoint
+#    selection is now an honest ADR-0004 selection rather than the training-set fallback the
+#    preliminary model ran with. The split is an INTERLEAVED CHECKERBOARD over 4096 px blocks, `(gx+2*gy)%4==0`
+#    going to val, with the val blocks inset 128 px. Measured on the extracted patches:
+#    train 1142 patches / 1000 objects, val 369 patches / 277 objects (255 tubule,
+#    22 glomerulus), ONE val object with more than 5% of its area also seen in training, and
+#    zero shared pixels between a train patch and a val patch.
+#
+#    Not a contiguous band, and the block size is not arbitrary. Kidney anatomy is spatially
+#    organised and 82% of the annotations sit in a narrow dense strip along the bottom edge
+#    of the section, so a band split measures that strip and nothing else, and a vertical
+#    stripe split puts the whole val set in the sparse margins. Small blocks fail for a
+#    different reason: the val region has to stand off from train territory by more than the
+#    largest annotated object (538 px), and that inset eats a 2048 px block alive -- at
+#    2048/576 only 34 val objects survive. 4096 px blocks have proportionally less border,
+#    so the containment rule alone gets contamination to 1 object in 277 at an inset of 128.
+#
+#    Honest statement of what this does and does not test: it is a held-out REGION of the
+#    same section, so staining, scanner and section artefacts are shared with training. It
+#    is not a test of cross-slide generalisation. HUK1_MED_1 remains entirely unseen.
+#
+# 6. FROM SCRATCH, human only. Not warm-started from the mouse decoder.
+_base_: default.yaml
+
+# Relative to THIS file (configs/) -> kidney_segmentation/data/
+manifest: ../data/manifest_human.csv
+
+# Documentation of the plane this config is calibrated on; every px value below assumes it.
+mpp: 0.5
+patch_size: 640
+
+# ---------------------------------------------------------------------------
+# Classes -- two annotated structures, so three canonical labels including background.
+# ---------------------------------------------------------------------------
+classes: [background, tubule, glomerulus]
+compact_classes: [glomerulus]
+elongated_classes: [tubule]
+
+class_map:
+  # The merged annotation file already uses the canonical lowercase names; ClassSpec maps every
+  # canonical name to itself, so those need no entry. These two are the ORIGINAL QuPath
+  # labels from the hand-drawn file and are kept so that file still loads unchanged.
+  Tubules: tubule
+  Glomeruli: glomerulus
+  # `_base_` inheritance is a DEEP MERGE, so a child config cannot delete a parent key:
+  # the mouse cohort's `Tubules2 -> tubule_distal` and `Tubules3 -> tubule_collecting`
+  # survive into the merged map, and ClassSpec validates the whole merged map. Left alone
+  # they point at classes this vocabulary does not declare and extraction refuses to start.
+  # Repointing them at `tubule` is also the semantically right answer: in a one-tubule-class
+  # vocabulary every tubule subtype IS a tubule. Neither label occurs in the human GeoJSON.
+  Tubules2: tubule
+  Tubules3: tubule
+
+# The mouse cohort's other labels are listed too, so that if a human file ever arrives
+# carrying them the extraction fails loudly on an unmapped name rather than silently.
+ignore_names: [ignore, unlabeled, Vessel, "Blood Cells", Nerve]
+
+wsi:
+  level: 0            # flat export; the manifest row pins this per-slide as well
+  manual_mpp: 0.5
+  target_mpp: 0.5
+
+# ---------------------------------------------------------------------------
+# Patch extraction
+# ---------------------------------------------------------------------------
+patch:
+  size: 640
+  stride: 256          # 40% of the patch, so a whole glomerulus is reachable (see note 3)
+  annotations_space: level   # flat export at level 0; annotation coords are image pixels
+  restrict_to_annotations: true
+  annotation_margin: 512
+  # The 220 annotations sit in ~36 loose clusters spread over the whole section rather than
+  # in dense ROIs, so the annotated bounding box covers most of the tissue and is mostly
+  # UNannotated. The three-way ignore mask is what makes that safe: unannotated tissue
+  # contributes no gradient. The patches worth keeping from that region are the glassy
+  # ones, because off-tissue pixels are trusted background and are the only thing stopping
+  # the foreground head hallucinating on blank slide.
+  bg_min_glass_frac: 0.20
+  bg_glass_keep_ratio: 0.60
+  bg_keep_ratio: 0.03
+  oversample:
+    # 104 glomeruli against 1443 tubules. Still the rare class, but 4.5x better represented
+    # than in the preliminary model's data, so the factor comes down from 3: at 1547 objects an aggressive duplication
+    # would start teaching the model that glomeruli are commoner than they are.
+    glomerulus: 2
+    # Inherited from the mouse config and inert here: the factor only fires when a patch
+    # actually contains the named class, and no human patch can. Pinned to 1 to say so.
+    tubule_collecting: 1
+    tubule_distal: 1
+
+# ---------------------------------------------------------------------------
+# Supervision targets -- restated at 0.5 um/px
+# ---------------------------------------------------------------------------
+targets:
+  # 3 px at 0.44068 um/px is 1.32 um of wall. The same physical width at 0.5 um/px is
+  # 2.6 px; 3 is kept because the band is a half-width on a rasterized contour and
+  # rounding it down would put it below the 2 px floor of the swept range.
+  boundary_width_px: 3
+  center_sigma_max: 32.0   # was 24 at mouse scale; human glomeruli are ~2x the pixel extent
+
+# ---------------------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------------------
+train:
+  epochs: 60
+  batch_size: 6        # 640^2 instead of 512^2 at out_stride 1
+  eval_every: 2
+  save_every: 10
+  # With no held-out slide this scores the training set. Kept on because the curve is still
+  # the most useful thing available for spotting a run that has stopped learning -- it is
+  # just not a performance number. See note 4 above.
+  select_metric: pq
+
+decoder:
+  # Back to the repo default. It was raised to 0.15 for the preliminary model for one stated
+  # reason -- 220 objects against a 7.3 M-parameter decoder -- and this model trains on 1000,
+  # so the reason no longer holds. Flagged because it means the two differ in more than the
+  # data.
+  dropout: 0.10
+
+# ---------------------------------------------------------------------------
+# Decode -- per-class area floors re-measured on the human whole polygons
+# ---------------------------------------------------------------------------
+# Measured over all 220 whole polygons at 0.5 um/px (px^2):
+#             n     min      p5      median
+#   tubule    197   3578    4460     11596
+#   glomerulus 23  23649   35230    106835
+#
+# Floors are set at HALF the whole-object p5, following the mouse rule: a floor at p5 discards
+# 5% of real objects by construction, while half still sits an order of magnitude above the
+# watershed slivers it exists to cut. The glomerulus p5 rests on 23 objects and is not a
+# stable percentile -- half of it (17615) is comfortably below the smallest annotated
+# glomerulus (23649), which is the property that actually matters.
+decode:
+  # --- shared-wall / interstitium annexation (both OFF in default.yaml) -------------------
+  #
+  # The artefact: an instance correctly outlines its own tubule and then annexes the wall it
+  # shares with a neighbour, or trails a thin tendril down the interstitium between tubules.
+  # It is not a merge -- no whole neighbour is swallowed -- so PQ and DQ never charged it,
+  # and the first slide-wide run shipped with 37.7% of predicted tubules carrying a
+  # concavity that only 1.5% of the annotations have.
+  #
+  # Cause, measured on real crops with the trained model: the annexed strip has p_bg 0.269,
+  # so `1 - p_bg = 0.731` clears `fg_threshold` and the strip enters the flood mask; once
+  # admitted, the watershed MUST give it to some seed. The model itself is not wrong about
+  # those pixels -- it reports p_bnd 0.671 ("wall") and p_interior 0.061 ("not interior").
+  # The decode was throwing that away, because the foreground gate reads p_bg alone.
+  #
+  # Swept over 10 crops of 1536 px covering 209 of the 220 annotations, decoding cached d4
+  # probability maps so every setting sees identical model output:
+  #
+  #                        PQ     SQ     DQ    AJI   merge   solidity<0.85   pred/annot area
+  #   shipped            0.887  0.900  0.986  0.900   1.9%       42.8%            1.048
+  #   cap=10             0.899  0.908  0.990  0.907   1.9%       11.1%            1.038
+  #   veto=0.05 alone    0.896  0.900  0.995  0.913   1.0%       43.2%            1.030
+  #   cap=10 + veto      0.906  0.910  0.995  0.920   1.0%       10.8%            1.037
+  #
+  # The two are ORTHOGONAL and the table is how we know: the veto alone halves merging and
+  # does nothing at all for solidity; the cap alone fixes solidity and does nothing for
+  # merging. They act at different stages -- seeding versus flooding -- exactly as ADR 0001
+  # frames the decode.
+  #
+  # cap=10 is set from the geometry, NOT from the PQ optimum. cap=4 scored higher (PQ 0.908)
+  # but those 209 objects were all in training, where the interior head is unusually strong
+  # and so the seed is unusually large; a cap tuned there would clip real wall off any
+  # unseen tubule whose interior fires weakly, and this evaluation cannot see that happen.
+  # 10 px is the independently measured ceiling on an object's own wall (p90 9.2 px), and
+  # the artefact metric is flat between 4 and 12 anyway, so nothing is bought by going
+  # tighter. The area ratio confirms objects are not being eroded: 1.048 -> 1.037, moving
+  # TOWARDS the annotations rather than under them.
+  max_flood_distance_px: 10
+  touching_seed_veto: 0.05
+  # `watershed_line: true` was swept alongside and left OFF: it costs 0.001 PQ and changes
+  # solidity by 0.2 points, because the cap has already released the contested pixels that a
+  # separating line would have arbitrated.
+
+  min_area:
+    default: 2000
+    tubule: 2230
+    glomerulus: 17615
+    # The mouse per-class floors (tubule_proximal / tubule_distal / tubule_collecting) are
+    # inherited by the deep merge and cannot be removed from a child config. They are dead
+    # keys -- min_area is looked up by canonical class NAME and no instance here can carry
+    # one of those names -- so they are left rather than given misleading human values.
+  center_min_distance: 32     # human glomeruli are larger; 20 px at mouse scale
+  semantic_split:
+    # Structurally inapplicable here: there is one tubule class, so no tubule-tubule
+    # contact is ever cross-class. Off, and the pair list is emptied so it cannot fire.
+    enabled: false
+    pairs: []
+
+augment:
+  # translate_px stays at half the extraction stride (256/2), as on the mouse cohort.
+  translate_px: 128
+  copy_paste:
+    p: 0.5
+    max_objects: 3
+    classes: [glomerulus]     # the only rare class in this vocabulary
+    blend_px: 3
+
+# ---------------------------------------------------------------------------
+# WSI inference
+# ---------------------------------------------------------------------------
+# infer.tile MUST equal patch.size. The frozen ViT resizes whatever it is handed to
+# encoder.input_size (518) before tokenising, so the tile size decides the apparent
+# magnification the encoder sees: a 640 px tile arrives downscaled by 0.81, a 512 px tile
+# upscaled by 1.01. Training on 640 and inferring on the inherited 512 would present the
+# encoder with structures 25% larger than anything it was trained against, on the one
+# component that was never adapted to this cohort. The trainable stem and decoder run on
+# native pixels and would not notice; the mismatch would show up only as unexplained
+# quality loss at slide scale.
+#
+# overlap keeps the mouse cohort's 25% of the tile (128/512 -> 160/640).
+infer:
+  tile: 640
+  overlap: 160
+
+paths:
+  patches_dir: ../data/patches_human
