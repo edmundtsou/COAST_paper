@@ -1,0 +1,73 @@
+species,family,early,late,confirmed
+mouse,ATP binding cassette subfamily C,Abcc4,Abcc2,True
+mouse,ATP binding cassette subfamily C,Abcc4,Abcc9,True
+mouse,ATP binding cassette subfamily D,Abcd4,Abcd3,True
+mouse,Solute carrier family 12,Slc12a3,Slc12a1,False
+mouse,Solute carrier family 12,Slc12a7,Slc12a1,False
+mouse,Solute carrier family 16,Slc16a1,Slc16a4,True
+mouse,Solute carrier family 16,Slc16a1,Slc16a9,True
+mouse,Solute carrier family 16,Slc16a10,Slc16a4,True
+mouse,Solute carrier family 16,Slc16a10,Slc16a9,True
+mouse,Solute carrier family 16,Slc16a12,Slc16a4,True
+mouse,Solute carrier family 16,Slc16a12,Slc16a9,True
+mouse,Solute carrier family 22,Slc22a23,Slc22a12,True
+mouse,Solute carrier family 22,Slc22a23,Slc22a13,True
+mouse,Solute carrier family 22,Slc22a23,Slc22a2,True
+mouse,Solute carrier family 22,Slc22a23,Slc22a7,True
+mouse,Solute carrier family 22,Slc22a6,Slc22a12,True
+mouse,Solute carrier family 22,Slc22a6,Slc22a13,True
+mouse,Solute carrier family 22,Slc22a6,Slc22a2,True
+mouse,Solute carrier family 22,Slc22a6,Slc22a7,True
+mouse,Solute carrier family 22,Slc22a8,Slc22a12,True
+mouse,Solute carrier family 22,Slc22a8,Slc22a13,True
+mouse,Solute carrier family 22,Slc22a8,Slc22a2,True
+mouse,Solute carrier family 22,Slc22a8,Slc22a7,True
+mouse,Solute carrier family 23,Slc23a2,Slc23a1,True
+mouse,Solute carrier family 23,Slc23a2,Slc23a3,True
+mouse,Solute carrier family 25,Slc25a4,Slc25a17,True
+mouse,Solute carrier family 25,Slc25a4,Slc25a20,True
+mouse,Solute carrier family 25,Slc25a45,Slc25a17,True
+mouse,Solute carrier family 25,Slc25a45,Slc25a20,True
+mouse,Solute carrier family 27,Slc27a4,Slc27a2,True
+mouse,Solute carrier family 3,Slc3a2,Slc3a1,True
+mouse,Solute carrier family 30,Slc30a2,Slc30a1,True
+mouse,Solute carrier family 39 ,Slc39a5,Slc39a11,True
+mouse,Solute carrier family 39 ,Slc39a5,Slc39a14,True
+mouse,Solute carrier family 39 ,Slc39a5,Slc39a8,True
+mouse,Solute carrier family 46,Slc46a3,Slc46a1,True
+mouse,Solute carrier family 5,Slc5a12,Slc5a10,True
+mouse,Solute carrier family 5,Slc5a12,Slc5a3,True
+mouse,Solute carrier family 5,Slc5a2,Slc5a10,True
+mouse,Solute carrier family 5,Slc5a2,Slc5a3,True
+mouse,Solute carrier family 5,Slc5a9,Slc5a10,True
+mouse,Solute carrier family 5,Slc5a9,Slc5a3,True
+mouse,"Solute carrier family 56, sideroflexins",Sfxn4,Sfxn5,True
+mouse,Solute carrier family 6,Slc6a19,Slc6a13,True
+mouse,Solute carrier family 6,Slc6a19,Slc6a18,True
+mouse,Solute carrier family 6,Slc6a8,Slc6a13,True
+mouse,Solute carrier family 6,Slc6a8,Slc6a18,True
+mouse,Solute carrier family 7,Slc7a7,Slc7a13,True
+mouse,Solute carrier family 7,Slc7a8,Slc7a13,True
+mouse,Solute carrier family 7,Slc7a9,Slc7a13,True
+mouse,Solute carrier family 9,Slc9a3,Slc9a6,True
+mouse,Solute carrier family 9,Slc9a3,Slc9a8,True
+human,Solute carrier family 16,Slc16a1,Slc16a13,True
+human,Solute carrier family 16,Slc16a10,Slc16a13,True
+human,Solute carrier family 16,Slc16a9,Slc16a13,True
+human,Solute carrier family 2,Slc2a2,Slc2a9,False
+human,Solute carrier family 22,Slc22a23,Slc22a12,True
+human,Solute carrier family 22,Slc22a23,Slc22a13,False
+human,Solute carrier family 22,Slc22a23,Slc22a7,True
+human,Solute carrier family 22,Slc22a5,Slc22a12,True
+human,Solute carrier family 22,Slc22a5,Slc22a13,False
+human,Solute carrier family 22,Slc22a5,Slc22a7,True
+human,Solute carrier family 22,Slc22a8,Slc22a12,True
+human,Solute carrier family 22,Slc22a8,Slc22a13,False
+human,Solute carrier family 22,Slc22a8,Slc22a7,True
+human,Solute carrier family 5,Slc5a2,Slc5a10,True
+human,Solute carrier family 5,Slc5a2,Slc5a11,True
+human,Solute carrier family 6,Slc6a19,Slc6a18,True
+human,Solute carrier family 6,Slc6a19,Slc6a6,True
+human,Solute carrier family 7,Slc7a7,Slc7a13,True
+human,Solute carrier family 7,Slc7a8,Slc7a13,True
+human,Solute carrier family 7,Slc7a9,Slc7a13,True

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "coast-paper"
+version = "0.1.0"
+description = "Analysis and figure code of the COAST paper: the two COAST fits, the gene screens and every figure."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "coast @ git+https://github.com/edmundtsou/COAST.git",
+    "numpy",
+    "scipy",
+    "pandas",
+    "anndata",
+    "scanpy>=1.10",
+    "h5py",
+    "pyarrow",
+    "shapely>=2.1",
+    "statsmodels",
+    "joblib",
+    "matplotlib",
+    "pillow",
+    "pyyaml",
+    "igraph",
+    "leidenalg",
+]
+
+[project.optional-dependencies]
+baselines = ["scFates"]           # Fig. 3e; Slingshot (R) and GASTON run in their own environments
+gpu = ["rapids-singlecell"]       # scripts/fig4_sc_gpu.py
+
+[project.urls]
+Source = "https://github.com/edmundtsou/COAST_paper"
+Method = "https://github.com/edmundtsou/COAST"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["coast_paper"]
