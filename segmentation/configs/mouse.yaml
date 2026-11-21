@@ -17,7 +17,7 @@
 # training patch at stride 256.
 _base_: default.yaml
 
-# Relative to THIS file (configs/) -> kidney_segmentation/data/
+# Relative to THIS file (configs/) -> segmentation/data/
 manifest: ../data/manifest_mouse.csv
 
 wsi:

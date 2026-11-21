@@ -97,7 +97,7 @@
 # 6. FROM SCRATCH, human only. Not warm-started from the mouse decoder.
 _base_: default.yaml
 
-# Relative to THIS file (configs/) -> kidney_segmentation/data/
+# Relative to THIS file (configs/) -> segmentation/data/
 manifest: ../data/manifest_human.csv
 
 # Documentation of the plane this config is calibrated on; every px value below assumes it.

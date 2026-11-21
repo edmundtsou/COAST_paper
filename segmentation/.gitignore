@@ -1,3 +1,13 @@
+# ── Undo the repository root's .gitignore inside this folder ─────────────────
+# The root .gitignore excludes data/, results/, *.csv and *.geojson at every depth, because
+# the paper's own data never go in git. This folder ships small annotations, manifests and
+# benchmark tables (and a Python package named data/), so they are re-included here. The
+# rules further down then exclude what must stay local.
+!data/
+!results/
+!*.csv
+!*.geojson
+
 # ── Local only ───────────────────────────────────────────────────────────────
 # NOTE: '#' starts a comment only at the START of a line; a trailing "# note" becomes part
 # of the pattern. A slash-free pattern ('*.pt') matches at any depth; one containing a
