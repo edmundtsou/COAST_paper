@@ -1,0 +1,79 @@
+# Dataset binding for the Nx / 100_kidney mouse-kidney cohort.
+#
+# The slide manifest is a CSV with the columns:
+#     slide_id,image_path,geojson_path,split
+# (extra columns such as `stain` / `species` are carried through untouched).
+#
+# These annotations were drawn on the exported LEVEL-1 image, so their coordinates
+# are already in the chosen level's pixel space -> patch.annotations_space: level.
+#
+# Ctrl_1A2.tif is the exception and the manifest handles it per-slide: it is a single-level
+# export already at 0.44 um/px, so its row pins level=0 / manual_mpp=0.44068. Its only
+# resolution tag is a 300-DPI print artefact that WSIReader refuses on purpose.
+#
+# Ctrl_1A2 also appears TWICE, with disjoint `roi` bands and a 512 px gap between them, so
+# one slide contributes both training patches (y < 8500) and a second validation slide
+# (y >= 9012). The gap matters: without it a "held-out" patch would share pixels with a
+# training patch at stride 256.
+_base_: default.yaml
+
+# Relative to THIS file (configs/) -> segmentation/data/
+manifest: ../data/manifest_mouse.csv
+
+wsi:
+  level: 1
+  manual_mpp: null
+
+patch:
+  size: 512
+  stride: 256
+  annotations_space: level
+  restrict_to_annotations: true
+  annotation_margin: 512
+
+paths:
+  patches_dir: ../data/patches_mouse
+
+# ---------------------------------------------------------------------------
+# Interstitium-annexation decode guards (both OFF in default.yaml)
+# ---------------------------------------------------------------------------
+# Decode-only; no retrain. The artefact: an instance outlines its own tubule and then annexes
+# the wall it shares with a neighbour or a strip of interstitium -- not a merge, so PQ barely
+# charges it. It was found and fixed on the human cohort first (configs/human.yaml), and
+# the same mechanism is present here: 32.1% of predicted tubules had solidity < 0.85.
+#
+# The cap is MOUSE-CALIBRATED, not copied from human. Measured on this model over the held-out
+# regions, per-instance p90 geodesic distance from the object's own seed:
+#     own wall        p10 3.2   p50 3.6   p90 4.0  px
+#     annexed strip   p10 11.7  p50 26.9  p90 56.3 px
+# Mouse walls are thinner than human (own wall 4.0 px here vs 9.2 px there), so the human
+# value of 10 would sit close to where annexed strips begin; 8 sits in the gap.
+#
+# Swept on 454 HAND-DRAWN HELD-OUT objects (Nx_4wk_050's five 4096 px regions + the six
+# Ctrl_1A2 val blocks), decoding cached d4 maps so every row sees identical model output.
+# The baseline row reproduces the eval_regions.py result on Nx_4wk_050 exactly
+# (PQ 0.880, TP/FP/FN 92/1/6), which validates the harness.
+#
+#                       PQ     AJI    merge   solidity<0.85   pred/annot area
+#   shipped           0.765  0.710   13.0%       32.1%            1.016
+#   cap=8             0.772  0.715   13.0%       13.8%            1.009
+#   veto=0.05         0.774  0.735   11.7%       32.1%            1.015
+#   cap=8 + veto      0.781  0.741   11.7%       13.7%            1.008
+#   (Nx_4wk_050 alone: 0.880 -> 0.884;  Ctrl_1A2_val alone: 0.733 -> 0.751)
+#
+# Orthogonal again, as on human: the veto moves merging and not shape, the cap moves shape
+# and not merging. Unlike the human sweep these objects were never in training, so reading
+# the PQ optimum is legitimate here -- and it agrees with the geometry.
+#
+# The worry, from an earlier development model, that a cap would worsen under-segmentation
+# does not apply here: the area ratio is 1.016 at baseline (the earlier model's 0.47-0.82
+# was never re-measured), and the cap moves it to 1.008, i.e. towards the annotations.
+#
+# NOTE: wsi_infer.py and eval_regions.py rebuild their config FROM THE CHECKPOINT, so these
+# lines reach them only through a checkpoint trained with this file. The released
+# weights/mouse_weights.pt predates them and has them written into its stored config by
+# scripts/make_release_checkpoint.py; for any other older checkpoint pass
+#     --set decode.max_flood_distance_px=8 decode.touching_seed_veto=0.05
+decode:
+  max_flood_distance_px: 8
+  touching_seed_veto: 0.05

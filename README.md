@@ -6,8 +6,8 @@ Analysis and figure code of the COAST paper.
 **T**ranscriptomics) is the method: it orders cross-sections of a repeated tissue structure along one continuous axis,
 the **pseudostructure** coordinate, and asks how genes change along it. This repository holds everything the paper
 built around the method: the two COAST fits on the kidney data, the gene and pathway screens along the proximal
-tubule, and every figure. The segmentation model that outlines the tubules on the H&E will be added under
-[`segmentation/`](segmentation/).
+tubule, and every figure. The segmentation model that outlines the tubules and glomeruli on the H&E is in
+[`segmentation/`](segmentation/), with its own README.
 
 The data are Visium HD sections of two control and two injured (AKI) mouse kidneys and two sections of one healthy
 human kidney cortex. Two fits are made:
@@ -131,7 +131,6 @@ kidney (`marker_panels.yaml`), the pathway set builder (`pathways.py`) and the h
 
 ## Not yet here
 
-- The segmentation model: training and inference code (placeholder in [`segmentation/`](segmentation/)).
 - Two Extended Data panels of Fig. 5 (genes zonated by orthology class; human / mouse gradient attenuation against
   external atlases) read tables from analyses not yet in this repository; `fig5_panels.py` skips them when the tables
   are absent.

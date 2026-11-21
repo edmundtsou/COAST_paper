@@ -1,0 +1,21 @@
+# Versions that the released results and the test suite were produced with (Python 3.10,
+# CUDA 12.4, Linux). Newer versions will very likely work but are untested.
+#
+# PyTorch: install the build for your CUDA version first, from https://pytorch.org, e.g.
+#   pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0
+torchvision==0.21.0
+numpy==2.2.6
+scipy==1.15.3
+PyYAML==6.0.3
+opencv-python==4.13.0.92
+scikit-image==0.25.2
+shapely==2.1.2
+rasterio==1.4.4
+tifffile==2025.5.10
+imagecodecs==2025.3.30
+openslide-python==1.4.3
+openslide-bin==4.0.0.13
+huggingface_hub==1.7.2
+matplotlib==3.10.9
+pytest

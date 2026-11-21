@@ -1,0 +1,21 @@
+# TODO(release): fill in the paper title, authors, journal and DOI once available.
+cff-version: 1.2.0
+message: "If you use this software, please cite the COAST paper."
+title: "kidney_panoptic: tubule and glomerulus segmentation for the COAST paper"
+type: software
+license: MIT
+repository-code: "https://github.com/edmundtsou/COAST_paper"
+authors:
+  - family-names: Hallinan
+    given-names: Caleb
+version: 1.0.0
+date-released: 2026-11-18
+preferred-citation:
+  type: article
+  title: "TODO: paper title"
+  authors:
+    - family-names: "TODO"
+      given-names: "TODO"
+  journal: "TODO"
+  year: 2026
+  doi: "TODO"

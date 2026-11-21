@@ -1,0 +1,727 @@
+{
+  "provenance": {
+    "git": {
+      "commit": "b7635668c997b8b70612e7c7c6ec82794e87966b",
+      "tracked_files_modified": true
+    },
+    "argv": [
+      "--out-dir",
+      "results/reproduced/benchmark_human_test",
+      "--manifest",
+      "data/manifest_test.csv",
+      "--split",
+      "test",
+      "--pred",
+      "HUK1_MED_1_test=results/reproduced/human_HUK1_MED_1"
+    ],
+    "manifest": "data/manifest_test.csv",
+    "split": "test",
+    "tile_px": 1024,
+    "n_boot": 2000,
+    "seed": 1337,
+    "alpha": 0.05,
+    "slides": {
+      "HUK1_MED_1_test": {
+        "prediction_dir": "results/reproduced/human_HUK1_MED_1",
+        "checkpoint": "weights/human_weights.pt",
+        "working_mpp": 0.5,
+        "rectangles": [
+          [
+            8405,
+            6259,
+            12731,
+            9013
+          ]
+        ],
+        "decode": {
+          "fg_threshold": 0.5,
+          "interior_threshold": 0.4,
+          "min_seed_area": 24,
+          "watershed_line": false,
+          "max_flood_distance_px": 10,
+          "touching_seed_veto": 0.05,
+          "min_area": {
+            "default": 2000,
+            "tubule_proximal": 1950,
+            "tubule_distal": 1000,
+            "tubule_collecting": 950,
+            "glomerulus": 17615,
+            "tubule": 2230
+          },
+          "semantic_split": {
+            "enabled": false,
+            "min_class_prob": 0.5,
+            "open_px": 2,
+            "min_component_area": 600,
+            "min_minor_frac": 0.15,
+            "max_parts": 4,
+            "elevation": "boundary_plus_ambiguity",
+            "ambiguity_weight": 1.0,
+            "pairs": []
+          },
+          "center_threshold": 0.35,
+          "center_min_distance": 32,
+          "center_nms_iou": 0.6,
+          "merge_fragments": false,
+          "merge_max_boundary_prob": 0.3,
+          "merge_max_minor_axis_growth": 1.15,
+          "merge_max_area_ratio": 4.0,
+          "fill_holes": false
+        },
+        "tta": "d4"
+      }
+    }
+  },
+  "conventions": {
+    "matching": "class-agnostic; a pair is a true positive iff IoU > 0.5 (strict). Unique above 0.5, so identical to the Hungarian matching of panoptic_quality.",
+    "iou": "|G n P| / |G u P| per matched pair",
+    "dice": "2|G n P| / (|G| + |P|) per matched pair",
+    "dice_per_gt / iou_per_gt": "mean over ALL annotated objects, unmatched objects count 0",
+    "dice_matched / iou_matched": "mean over true positives only; conditioned on IoU > 0.5, so bounded below by 0.667 / 0.5",
+    "surface": "outer contour: holes filled, then mask pixels with a 4-neighbour outside; pixels on the evaluation-rectangle edge are excluded. Overlap metrics are not hole-filled",
+    "hd95": "max of the two directed 95th-percentile surface distances (MONAI / DeepMind surface-distance convention, not MedPy's pooled percentile); linear interpolation; true positives only, never imputed for misses",
+    "assd": "sum of both directed surface distances over the total number of surface pixels",
+    "leak_frac": "share of a matched prediction lying more than 5 px outside its annotation",
+    "split / merge": "ground-truth object covered >= 20 % by two or more predictions / by a prediction that also covers >= 20 % of another object",
+    "fg_dice_px / fg_iou_px": "foreground pixels inside the valid mask, pooled by summing counts over tiles",
+    "ignore": "predictions with < 50 % of their area in the valid mask are dropped; predictions on trusted background are false positives (ADR 0003)",
+    "confidence_interval": "percentile cluster bootstrap over tiles, stratified by slide; every replicate recomputes the pooled statistic from counts"
+  },
+  "caveats": [
+    "Confidence intervals describe spatial sampling variability WITHIN the scored slides. They do not describe generalisation across animals, sections, stain batches or scanners: with fewer than 5 slides the between-slide variance is not estimable and no between-slide standard error is reported."
+  ],
+  "classes": [
+    "background",
+    "tubule",
+    "glomerulus"
+  ],
+  "counts": {
+    "tp": 134,
+    "fp": 1,
+    "fn": 4,
+    "n_split": 0,
+    "n_merged": 2,
+    "n_gt": 138,
+    "n_pred": 135,
+    "n_tiles": 15
+  },
+  "pooled": {
+    "PQ": {
+      "estimate": 0.8815062549696109,
+      "ci_low": 0.8488638249057964,
+      "ci_high": 0.8986458789360988,
+      "se": 0.01303691977901373,
+      "n_boot": 2000
+    },
+    "SQ": {
+      "estimate": 0.8979522671891932,
+      "ci_low": 0.8834888323064488,
+      "ci_high": 0.9064495328267843,
+      "se": 0.005886192609303047,
+      "n_boot": 2000
+    },
+    "DQ": {
+      "estimate": 0.9816849816849816,
+      "ci_low": 0.9529396365876193,
+      "ci_high": 0.9963905386695651,
+      "se": 0.011249001974933049,
+      "n_boot": 2000
+    },
+    "recall": {
+      "estimate": 0.9710144927536232,
+      "ci_low": 0.9320333186231244,
+      "ci_high": 0.9931518497810082,
+      "se": 0.01564280123818296,
+      "n_boot": 2000
+    },
+    "precision": {
+      "estimate": 0.9925925925925926,
+      "ci_low": 0.9674774655355249,
+      "ci_high": 1.0,
+      "se": 0.009094369496133764,
+      "n_boot": 2000
+    },
+    "dice_per_gt": {
+      "estimate": 0.91757204287435,
+      "ci_low": 0.8777243525502543,
+      "ci_high": 0.9407433978084133,
+      "se": 0.016382238105146045,
+      "n_boot": 2000
+    },
+    "iou_per_gt": {
+      "estimate": 0.8719246652416804,
+      "ci_low": 0.8298930154244044,
+      "ci_high": 0.895403749070469,
+      "se": 0.016963410910739104,
+      "n_boot": 2000
+    },
+    "dice_matched": {
+      "estimate": 0.9449622531094053,
+      "ci_low": 0.9361469478911821,
+      "ci_high": 0.9500755190608001,
+      "se": 0.003610640368506656,
+      "n_boot": 2000
+    },
+    "iou_matched": {
+      "estimate": 0.8979522671891932,
+      "ci_low": 0.8834888323064488,
+      "ci_high": 0.9064495328267843,
+      "se": 0.005886192609303047,
+      "n_boot": 2000
+    },
+    "hd95_um_mean": {
+      "estimate": 7.15227954005838,
+      "ci_low": 5.364708959989705,
+      "ci_high": 9.45586928828859,
+      "se": 1.0761194310136823,
+      "n_boot": 2000
+    },
+    "hd95_um_median": {
+      "estimate": 3.5355339059327378,
+      "ci_low": 3.1018294626587446,
+      "ci_high": 4.200803415593711,
+      "se": 0.2941763487552118,
+      "n_boot": 2000
+    },
+    "hd95_px_mean": {
+      "estimate": 14.30455908011676,
+      "ci_low": 10.72941791997941,
+      "ci_high": 18.91173857657718,
+      "se": 2.1522388620273647,
+      "n_boot": 2000
+    },
+    "assd_um_mean": {
+      "estimate": 1.8474740781002315,
+      "ci_low": 1.582026728990806,
+      "ci_high": 2.2064201886222943,
+      "se": 0.16758330022759474,
+      "n_boot": 2000
+    },
+    "split_rate": {
+      "estimate": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "se": 0.0,
+      "n_boot": 2000
+    },
+    "merge_rate": {
+      "estimate": 0.014492753623188406,
+      "ci_low": 0.0,
+      "ci_high": 0.0551819923371647,
+      "se": 0.016031723623115023,
+      "n_boot": 2000
+    },
+    "fg_dice_px": {
+      "estimate": 0.9656959040888751,
+      "ci_low": 0.9620974490574238,
+      "ci_high": 0.9679189080343533,
+      "se": 0.0014878017705289167,
+      "n_boot": 2000
+    },
+    "fg_iou_px": {
+      "estimate": 0.9336672917631517,
+      "ci_low": 0.9269631799140228,
+      "ci_high": 0.9378322262607509,
+      "se": 0.0027777283653382763,
+      "n_boot": 2000
+    },
+    "dice_px[tubule]": {
+      "estimate": 0.9571902846491156,
+      "ci_low": 0.9513991019410932,
+      "ci_high": 0.9601343061981182,
+      "se": 0.002261822565331327,
+      "n_boot": 2000
+    },
+    "dice_px[glomerulus]": {
+      "estimate": 0.9818355389465857,
+      "ci_low": 0.9787339751021199,
+      "ci_high": 0.9837420413439993,
+      "se": 0.0012663184753240234,
+      "n_boot": 2000
+    }
+  },
+  "per_slide": {
+    "HUK1_MED_1_test": {
+      "counts": {
+        "tp": 134,
+        "fp": 1,
+        "fn": 4,
+        "n_split": 0,
+        "n_merged": 2,
+        "n_gt": 138,
+        "n_pred": 135,
+        "n_tiles": 15
+      },
+      "metrics": {
+        "PQ": {
+          "estimate": 0.8815062549696109,
+          "ci_low": 0.8488638249057964,
+          "ci_high": 0.8986458789360988,
+          "se": 0.01303691977901373,
+          "n_boot": 2000
+        },
+        "SQ": {
+          "estimate": 0.8979522671891932,
+          "ci_low": 0.8834888323064488,
+          "ci_high": 0.9064495328267843,
+          "se": 0.005886192609303047,
+          "n_boot": 2000
+        },
+        "DQ": {
+          "estimate": 0.9816849816849816,
+          "ci_low": 0.9529396365876193,
+          "ci_high": 0.9963905386695651,
+          "se": 0.011249001974933049,
+          "n_boot": 2000
+        },
+        "recall": {
+          "estimate": 0.9710144927536232,
+          "ci_low": 0.9320333186231244,
+          "ci_high": 0.9931518497810082,
+          "se": 0.01564280123818296,
+          "n_boot": 2000
+        },
+        "precision": {
+          "estimate": 0.9925925925925926,
+          "ci_low": 0.9674774655355249,
+          "ci_high": 1.0,
+          "se": 0.009094369496133764,
+          "n_boot": 2000
+        },
+        "dice_per_gt": {
+          "estimate": 0.91757204287435,
+          "ci_low": 0.8777243525502543,
+          "ci_high": 0.9407433978084133,
+          "se": 0.016382238105146045,
+          "n_boot": 2000
+        },
+        "iou_per_gt": {
+          "estimate": 0.8719246652416804,
+          "ci_low": 0.8298930154244044,
+          "ci_high": 0.895403749070469,
+          "se": 0.016963410910739104,
+          "n_boot": 2000
+        },
+        "dice_matched": {
+          "estimate": 0.9449622531094053,
+          "ci_low": 0.9361469478911821,
+          "ci_high": 0.9500755190608001,
+          "se": 0.003610640368506656,
+          "n_boot": 2000
+        },
+        "iou_matched": {
+          "estimate": 0.8979522671891932,
+          "ci_low": 0.8834888323064488,
+          "ci_high": 0.9064495328267843,
+          "se": 0.005886192609303047,
+          "n_boot": 2000
+        },
+        "hd95_um_mean": {
+          "estimate": 7.15227954005838,
+          "ci_low": 5.364708959989705,
+          "ci_high": 9.45586928828859,
+          "se": 1.0761194310136823,
+          "n_boot": 2000
+        },
+        "hd95_um_median": {
+          "estimate": 3.5355339059327378,
+          "ci_low": 3.1018294626587446,
+          "ci_high": 4.200803415593711,
+          "se": 0.2941763487552118,
+          "n_boot": 2000
+        },
+        "hd95_px_mean": {
+          "estimate": 14.30455908011676,
+          "ci_low": 10.72941791997941,
+          "ci_high": 18.91173857657718,
+          "se": 2.1522388620273647,
+          "n_boot": 2000
+        },
+        "assd_um_mean": {
+          "estimate": 1.8474740781002315,
+          "ci_low": 1.582026728990806,
+          "ci_high": 2.2064201886222943,
+          "se": 0.16758330022759474,
+          "n_boot": 2000
+        },
+        "split_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 2000
+        },
+        "merge_rate": {
+          "estimate": 0.014492753623188406,
+          "ci_low": 0.0,
+          "ci_high": 0.0551819923371647,
+          "se": 0.016031723623115023,
+          "n_boot": 2000
+        },
+        "fg_dice_px": {
+          "estimate": 0.9656959040888751,
+          "ci_low": 0.9620974490574238,
+          "ci_high": 0.9679189080343533,
+          "se": 0.0014878017705289167,
+          "n_boot": 2000
+        },
+        "fg_iou_px": {
+          "estimate": 0.9336672917631517,
+          "ci_low": 0.9269631799140228,
+          "ci_high": 0.9378322262607509,
+          "se": 0.0027777283653382763,
+          "n_boot": 2000
+        },
+        "dice_px[tubule]": {
+          "estimate": 0.9571902846491156,
+          "ci_low": 0.9513991019410932,
+          "ci_high": 0.9601343061981182,
+          "se": 0.002261822565331327,
+          "n_boot": 2000
+        },
+        "dice_px[glomerulus]": {
+          "estimate": 0.9818355389465857,
+          "ci_low": 0.9787339751021199,
+          "ci_high": 0.9837420413439993,
+          "se": 0.0012663184753240234,
+          "n_boot": 2000
+        }
+      }
+    }
+  },
+  "between_slide": {
+    "PQ": {
+      "n": 1,
+      "mean": 0.8815062549696109,
+      "min": 0.8815062549696109,
+      "max": 0.8815062549696109,
+      "se": null,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "dice_per_gt": {
+      "n": 1,
+      "mean": 0.91757204287435,
+      "min": 0.91757204287435,
+      "max": 0.91757204287435,
+      "se": null,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "hd95_um_mean": {
+      "n": 1,
+      "mean": 7.15227954005838,
+      "min": 7.15227954005838,
+      "max": 7.15227954005838,
+      "se": null,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "note": "1 slide(s) scored: between-slide standard error is not estimable; per-slide point estimates are shown instead."
+  },
+  "by_class": {
+    "tubule": {
+      "n_gt": 130,
+      "metrics": {
+        "recall": {
+          "estimate": 0.9692307692307692,
+          "ci_low": 0.9265982617093191,
+          "ci_high": 0.9928571428571429,
+          "se": 0.016838371379141907,
+          "n_boot": 2000
+        },
+        "dice_per_gt": {
+          "estimate": 0.9146755627401629,
+          "ci_low": 0.8709784070030039,
+          "ci_high": 0.9396476813903136,
+          "se": 0.01773551606188394,
+          "n_boot": 2000
+        },
+        "iou_per_gt": {
+          "estimate": 0.8681872582329401,
+          "ci_low": 0.8219633013027944,
+          "ci_high": 0.8940644152222974,
+          "se": 0.01840166002411266,
+          "n_boot": 2000
+        },
+        "dice_matched": {
+          "estimate": 0.9437128821922315,
+          "ci_low": 0.9344288149129931,
+          "ci_high": 0.9490792775236973,
+          "se": 0.0037505278681592424,
+          "n_boot": 2000
+        },
+        "hd95_um_mean": {
+          "estimate": 5.933937104965183,
+          "ci_low": 4.519838001896623,
+          "ci_high": 8.186865291176765,
+          "se": 0.9434503415308503,
+          "n_boot": 2000
+        },
+        "hd95_um_median": {
+          "estimate": 3.5,
+          "ci_low": 3.0,
+          "ci_high": 4.0,
+          "se": 0.265491689215113,
+          "n_boot": 2000
+        },
+        "split_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 2000
+        },
+        "merge_rate": {
+          "estimate": 0.015384615384615385,
+          "ci_low": 0.0,
+          "ci_high": 0.05826670474014841,
+          "se": 0.01688012126417676,
+          "n_boot": 2000
+        }
+      }
+    },
+    "glomerulus": {
+      "n_gt": 8,
+      "metrics": {
+        "recall": {
+          "estimate": 1.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "se": 0.0,
+          "n_boot": 2000
+        },
+        "dice_per_gt": {
+          "estimate": 0.9646398450548924,
+          "ci_low": 0.951187088169012,
+          "ci_high": 0.9756025035898165,
+          "se": 0.006666461934840396,
+          "n_boot": 2000
+        },
+        "iou_per_gt": {
+          "estimate": 0.9326575291337089,
+          "ci_low": 0.9089753551672205,
+          "ci_high": 0.9523738644194525,
+          "se": 0.01185419149023493,
+          "n_boot": 2000
+        },
+        "dice_matched": {
+          "estimate": 0.9646398450548924,
+          "ci_low": 0.951187088169012,
+          "ci_high": 0.9756025035898165,
+          "se": 0.006666461934840396,
+          "n_boot": 2000
+        },
+        "hd95_um_mean": {
+          "estimate": 26.34117289277625,
+          "ci_low": 11.860095576242687,
+          "ci_high": 41.83135618645638,
+          "se": 7.622374525485395,
+          "n_boot": 2000
+        },
+        "hd95_um_median": {
+          "estimate": 16.814804909411066,
+          "ci_low": 6.726812023536855,
+          "ci_high": 53.41448079377289,
+          "se": 14.641760169819767,
+          "n_boot": 2000
+        },
+        "split_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 2000
+        },
+        "merge_rate": {
+          "estimate": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "se": 0.0,
+          "n_boot": 2000
+        }
+      }
+    }
+  },
+  "by_source": {},
+  "edge_cases": {
+    "boundary_leakage": {
+      "n_matched": 134,
+      "leak_frac_mean": 0.021809142905405695,
+      "leak_frac_gt_0.05_rate": 0.09701492537313433,
+      "over_reach_asymmetry_px_mean": 6.132710164957243,
+      "over_reach_asymmetry_px_median": 0.18059174839025438,
+      "area_ratio_median": 1.0486636419249167,
+      "area_ratio_mean": 1.064701604160942,
+      "pred_solidity_lt_0.85_rate": 0.04477611940298507,
+      "gt_solidity_lt_0.85_rate": 0.021739130434782608,
+      "pred_px_on_trusted_background_frac": 0.05068738947623896
+    },
+    "small_and_disconnected": {
+      "scored_predictions": 135,
+      "scored_multi_component": 0,
+      "all_predictions_in_rectangles": {
+        "n_instances": 496,
+        "n_below_min_area": 0,
+        "n_multi_component": 0,
+        "mean_stray_area_frac": 0.0
+      },
+      "false_positives": {
+        "n": 1,
+        "on_object": 0,
+        "on_background": 1,
+        "area_px_quartiles": [
+          27564.0,
+          27564.0,
+          27564.0
+        ]
+      }
+    },
+    "by_gt_area_quartile": [
+      {
+        "quartile": 1,
+        "area_px": [
+          3432.0,
+          8602.75
+        ],
+        "n": 35,
+        "recall": 0.9714285714285714,
+        "dice_per_gt": 0.911466614197395,
+        "hd95_um_mean": 3.3422889452460898,
+        "merge_rate": 0.02857142857142857
+      },
+      {
+        "quartile": 2,
+        "area_px": [
+          8602.75,
+          13305.0
+        ],
+        "n": 34,
+        "recall": 1.0,
+        "dice_per_gt": 0.9465607061697864,
+        "hd95_um_mean": 4.573966801454146,
+        "merge_rate": 0.029411764705882353
+      },
+      {
+        "quartile": 3,
+        "area_px": [
+          13305.0,
+          23893.5
+        ],
+        "n": 34,
+        "recall": 0.9117647058823529,
+        "dice_per_gt": 0.8564718312959969,
+        "hd95_um_mean": 6.729153216636671,
+        "merge_rate": 0.0
+      },
+      {
+        "quartile": 4,
+        "area_px": [
+          23893.5,
+          165409.0
+        ],
+        "n": 35,
+        "recall": 1.0,
+        "dice_per_gt": 0.9548715470261389,
+        "hd95_um_mean": 13.732828950407947,
+        "merge_rate": 0.0
+      }
+    ],
+    "border_sensitivity": {
+      "n_matched_touching_rectangle_edge": 0,
+      "hd95_um_mean_all": 7.15227954005838,
+      "hd95_um_mean_excluding_edge_objects": 7.15227954005838
+    },
+    "class_agreement_among_matched": {
+      "accuracy": 1.0,
+      "confusion": [
+        {
+          "gt": "glomerulus",
+          "pred": "glomerulus",
+          "n": 8
+        },
+        {
+          "gt": "tubule",
+          "pred": "tubule",
+          "n": 126
+        }
+      ]
+    },
+    "stain_observational": {
+      "n_tiles": 12,
+      "note": "Observational only: staining intensity is confounded with anatomy (medulla stains differently from cortex), so an association here is not evidence of stain sensitivity on its own. The controlled test is --stain-drift.",
+      "spearman[h_od,dice_per_gt]": {
+        "rho": 0.006993006993006993,
+        "p": 0.9827917689028476,
+        "n": 12
+      },
+      "spearman[h_od,hd95_um_mean]": {
+        "rho": -0.1958041958041958,
+        "p": 0.5419358857313175,
+        "n": 12
+      },
+      "tertiles[h_od]": [
+        {
+          "tertile": 1,
+          "n_tiles": 4,
+          "od_mean": 0.0031234371376590237,
+          "dice_per_gt": 0.8760504535848116,
+          "hd95_um_mean": 8.597540901911358,
+          "PQ": 0.8511128915949995
+        },
+        {
+          "tertile": 2,
+          "n_tiles": 4,
+          "od_mean": 0.0035770716932083365,
+          "dice_per_gt": 0.946214927045271,
+          "hd95_um_mean": 6.477041406457746,
+          "PQ": 0.8993704212812157
+        },
+        {
+          "tertile": 3,
+          "n_tiles": 4,
+          "od_mean": 0.0039879259810558215,
+          "dice_per_gt": 0.8892998029294494,
+          "hd95_um_mean": 7.770776237685693,
+          "PQ": 0.8651000783279471
+        }
+      ],
+      "spearman[e_od,dice_per_gt]": {
+        "rho": -0.3076923076923077,
+        "p": 0.3305892594121097,
+        "n": 12
+      },
+      "spearman[e_od,hd95_um_mean]": {
+        "rho": 0.3076923076923077,
+        "p": 0.3305892594121097,
+        "n": 12
+      },
+      "tertiles[e_od]": [
+        {
+          "tertile": 1,
+          "n_tiles": 4,
+          "od_mean": 0.01880991621244421,
+          "dice_per_gt": 0.9182301847516421,
+          "hd95_um_mean": 6.592335206351014,
+          "PQ": 0.8892455505448669
+        },
+        {
+          "tertile": 2,
+          "n_tiles": 4,
+          "od_mean": 0.020193888466808346,
+          "dice_per_gt": 0.9313773478008387,
+          "hd95_um_mean": 6.4886549639380116,
+          "PQ": 0.8897371571838107
+        },
+        {
+          "tertile": 3,
+          "n_tiles": 4,
+          "od_mean": 0.021408524099669497,
+          "dice_per_gt": 0.8740280503357987,
+          "hd95_um_mean": 10.1974295524538,
+          "PQ": 0.8449292301633671
+        }
+      ]
+    }
+  }
+}
